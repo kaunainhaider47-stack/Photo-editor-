@@ -1,77 +1,271 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Photo Editor - Instant Edit | Free Online Photo Editor</title>
-  <meta name="description" content="Free online photo editor with filters, adjustments, crop, text overlays, and PNG export. No watermark and no upload required." />
-  <meta name="keywords" content="free online photo editor no watermark, photo editor, image filters, crop image online, edit photos" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] } } } };
-  </script>
-  <style>
-    * { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
-    body { background: #070b14; }
-    .glass { background: rgba(15, 23, 42, .72); border: 1px solid rgba(148, 163, 184, .16); box-shadow: 0 20px 70px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.04); backdrop-filter: blur(18px); }
-    .checker { background-color: #111827; background-image: linear-gradient(45deg,#1f2937 25%,transparent 25%),linear-gradient(-45deg,#1f2937 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1f2937 75%),linear-gradient(-45deg,transparent 75%,#1f2937 75%); background-size: 24px 24px; background-position: 0 0,0 12px,12px -12px,-12px 0; }
-    input[type=range] { accent-color: #a78bfa; }
-    .filter-btn.active { border-color: #a78bfa; background: rgba(139,92,246,.2); color: #fff; }
-    #cropBox { position:absolute; border:2px solid #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,.52); cursor: move; display:none; }
-    #cropBox::after { content:'↘'; position:absolute; right:-7px; bottom:-14px; color:#fff; font-size:18px; text-shadow:0 1px 3px #000; }
-    canvas { max-width:100%; max-height:68vh; object-fit:contain; display:block; }
-  </style>
-</head>
-<body class="min-h-screen text-slate-100 font-sans">
-  <div class="pointer-events-none fixed inset-0 overflow-hidden"><div class="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-violet-600/20 blur-3xl"></div><div class="absolute -right-20 top-1/3 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl"></div></div>
-  <main class="relative mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-    <header class="mb-5 flex flex-wrap items-center justify-between gap-4">
-      <div><div class="mb-1 flex items-center gap-2 text-sm font-medium text-violet-300"><span class="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]"></span> 100% client-side editing</div><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Photo Editor <span class="text-violet-400">- Instant Edit</span></h1></div>
-      <div class="flex gap-2"><button id="resetBtn" class="rounded-xl border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-violet-400 hover:text-white">Reset</button><button id="downloadBtn" class="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 py-2 text-sm font-bold shadow-lg shadow-violet-900/30 transition hover:scale-[1.02]">Download PNG</button></div>
-    </header>
-    <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <section class="glass flex min-h-[520px] flex-col rounded-2xl p-4 sm:p-5">
-        <div id="dropZone" class="relative flex min-h-[420px] flex-1 items-center justify-center overflow-hidden rounded-xl checker p-3 transition border border-transparent">
-          <div id="emptyState" class="absolute z-10 text-center"><div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/15 text-3xl">✦</div><p class="font-semibold">Drop an image here</p><p class="mt-1 text-sm text-slate-400">or choose a file to start editing</p><label class="mt-5 inline-flex cursor-pointer rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-900 transition hover:bg-violet-100"><input id="fileInput" type="file" accept="image/*" class="hidden">Choose image</label></div>
-          <div id="stage" class="relative hidden max-w-full"><canvas id="canvas"></canvas><div id="cropBox"></div></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="EditKaro is a free online photo editor for filters, background removal, text overlays, and crop tools."
+    />
+    <title>EditKaro | Free Online Photo Editor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            boxShadow: {
+              glow: '0 0 60px rgba(139, 92, 246, 0.25)',
+            },
+            colors: {
+              ink: '#09090d',
+              panel: '#111827',
+              accent: '#8b5cf6',
+              pinksoft: '#ec4899',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(139, 92, 246, 0.18), transparent 25%),
+          radial-gradient(circle at top right, rgba(236, 72, 153, 0.12), transparent 20%),
+          #09090d;
+      }
+      .glass {
+        background: rgba(17, 24, 39, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(14px);
+      }
+      .grid-bg {
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 36px 36px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.1));
+      }
+      .hero-glow {
+        background: radial-gradient(circle at center, rgba(139, 92, 246, 0.28), transparent 45%);
+      }
+      .text-gradient {
+        background: linear-gradient(90deg, #ffffff 0%, #c4b5fd 40%, #f9a8d4 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen overflow-x-hidden text-white antialiased">
+    <div class="grid-bg pointer-events-none absolute inset-0 opacity-40"></div>
+
+    <header class="relative z-20">
+      <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-8">
+        <div class="flex items-center gap-3">
+          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 shadow-glow">
+            <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5 text-white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14"/>
+              <path d="M5 12h14"/>
+              <path d="M7 7l10 10"/>
+            </svg>
+          </div>
+          <div class="text-2xl font-bold tracking-tight">EditKaro</div>
         </div>
-        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400"><span id="imageInfo">Demo image loaded · edits stay in your browser</span><label class="cursor-pointer rounded-lg border border-slate-700 px-3 py-2 font-semibold text-slate-300 hover:border-violet-400 hover:text-white"><input id="fileInput2" type="file" accept="image/*" class="hidden">↥ Replace image</label></div>
+
+        <div class="hidden items-center gap-8 text-sm text-slate-300 md:flex">
+          <a href="#features" class="transition hover:text-white">Features</a>
+          <a href="#how-it-works" class="transition hover:text-white">How it works</a>
+          <a href="#about" class="transition hover:text-white">About</a>
+        </div>
+
+        <a
+          href="editor.html"
+          class="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-medium text-white transition hover:border-violet-400/40 hover:bg-white/10"
+        >
+          Open Editor
+        </a>
+      </nav>
+    </header>
+
+    <main class="relative z-10">
+      <section class="mx-auto max-w-7xl px-6 pb-16 pt-10 text-center lg:px-8 lg:pb-24 lg:pt-16">
+        <div class="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-4 py-2 text-sm text-violet-200">
+          <span class="h-2 w-2 rounded-full bg-violet-400"></span>
+          Creative tools for everyone
+        </div>
+
+        <h1 class="mx-auto max-w-5xl text-5xl font-black leading-tight tracking-[-0.05em] text-white sm:text-6xl lg:text-8xl">
+          Free Online <span class="text-gradient">Photo Editor</span>
+        </h1>
+
+        <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-300 sm:text-xl">
+          Design like a pro with powerful filters, background removal, crop tools, and text overlays — all in one simple editor.
+        </p>
+
+        <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <a
+            href="editor.html"
+            class="inline-flex items-center justify-center rounded-full bg-white px-7 py-4 text-base font-semibold text-slate-900 shadow-[0_20px_60px_rgba(255,255,255,0.18)] transition hover:-translate-y-0.5 hover:bg-violet-100"
+          >
+            Start Editing
+          </a>
+          <a
+            href="#features"
+            class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-7 py-4 text-base font-semibold text-slate-200 transition hover:border-white/20 hover:bg-white/10"
+          >
+            Explore Features
+          </a>
+        </div>
+
+        <div class="relative mx-auto mt-16 max-w-6xl">
+          <div class="hero-glow absolute inset-0 mx-auto h-full w-full max-w-3xl rounded-full blur-3xl"></div>
+          <div class="glass relative overflow-hidden rounded-[30px] p-3 shadow-[0_40px_120px_rgba(76,29,149,0.35)]">
+            <div class="rounded-[24px] border border-white/10 bg-[#0d1117] p-2 md:p-3">
+              <div class="flex items-center gap-2 px-3 py-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-red-400"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-yellow-400"></span>
+                <span class="h-2.5 w-2.5 rounded-full bg-green-400"></span>
+              </div>
+              <div class="grid gap-3 md:grid-cols-[180px_1fr_180px]">
+                <div class="rounded-2xl bg-zinc-900/80 p-4">
+                  <div class="mb-5 h-2.5 w-20 rounded-full bg-white/10"></div>
+                  <div class="space-y-3">
+                    <div class="h-12 rounded-xl bg-violet-500/15"></div>
+                    <div class="h-12 rounded-xl bg-white/5"></div>
+                    <div class="h-12 rounded-xl bg-white/5"></div>
+                    <div class="h-12 rounded-xl bg-white/5"></div>
+                  </div>
+                </div>
+
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-900/70 via-fuchsia-800/60 to-cyan-900/70 p-4">
+                  <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/10 to-transparent"></div>
+                  <div class="absolute -left-8 top-16 h-40 w-40 rounded-full bg-pink-300/30 blur-3xl"></div>
+                  <div class="absolute bottom-12 right-10 h-44 w-44 rounded-full bg-violet-400/30 blur-3xl"></div>
+                  <div class="relative flex h-full min-h-[300px] items-center justify-center">
+                    <div class="h-56 w-56 rounded-[30%] bg-gradient-to-br from-yellow-200 via-orange-300 to-pink-500 shadow-[0_40px_80px_rgba(14,10,30,0.5)]"></div>
+                  </div>
+                </div>
+
+                <div class="rounded-2xl bg-zinc-900/80 p-4">
+                  <div class="mb-5 h-2.5 w-16 rounded-full bg-white/10"></div>
+                  <div class="space-y-3">
+                    <div class="h-24 rounded-xl bg-white/5"></div>
+                    <div class="h-24 rounded-xl bg-white/5"></div>
+                    <div class="h-12 rounded-xl bg-white/5"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
-      <aside class="glass max-h-[calc(100vh-110px)] overflow-y-auto rounded-2xl p-4 sm:p-5">
-        <div class="mb-5"><h2 class="font-bold">Edit your image</h2><p class="mt-1 text-xs text-slate-400">Fine-tune every detail, instantly.</p></div>
-        <div class="mb-6"><h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">Filters</h3><div class="grid grid-cols-3 gap-2" id="filters"><button data-filter="original" class="filter-btn active rounded-lg border border-slate-700 px-2 py-2 text-xs">Original</button><button data-filter="grayscale" class="filter-btn rounded-lg border border-slate-700 px-2 py-2 text-xs">Grayscale</button><button data-filter="sepia" class="filter-btn rounded-lg border border-slate-700 px-2 py-2 text-xs">Sepia</button><button data-filter="vintage" class="filter-btn rounded-lg border border-slate-700 px-2 py-2 text-xs">Vintage</button><button data-filter="bw" class="filter-btn rounded-lg border border-slate-700 px-2 py-2 text-xs">B&W</button><button data-filter="vibrant" class="filter-btn rounded-lg border border-slate-700 px-2 py-2 text-xs">Vibrant</button></div></div>
-        <div class="mb-6"><h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">Adjustments</h3><div id="adjustments" class="space-y-3"></div></div>
-        <div class="mb-6"><h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">Transform</h3><div class="grid grid-cols-4 gap-2"><button data-action="rotateLeft" class="action rounded-lg border border-slate-700 py-2 text-lg hover:border-violet-400">↶</button><button data-action="rotateRight" class="action rounded-lg border border-slate-700 py-2 text-lg hover:border-violet-400">↷</button><button data-action="flipH" class="action rounded-lg border border-slate-700 py-2 text-sm hover:border-violet-400">↔</button><button data-action="flipV" class="action rounded-lg border border-slate-700 py-2 text-sm hover:border-violet-400">↕</button></div><div class="mt-1 grid grid-cols-4 text-center text-[10px] text-slate-500"><span>Left</span><span>Right</span><span>Flip H</span><span>Flip V</span></div></div>
-        <div class="mb-6"><h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">Crop</h3><div class="grid grid-cols-4 gap-2"><button data-crop="1:1" class="crop-btn rounded-lg border border-slate-700 px-2 py-2 text-xs hover:border-violet-400">1:1</button><button data-crop="16:9" class="crop-btn rounded-lg border border-slate-700 px-2 py-2 text-xs hover:border-violet-400">16:9</button><button data-crop="4:3" class="crop-btn rounded-lg border border-slate-700 px-2 py-2 text-xs hover:border-violet-400">4:3</button><button data-crop="free" class="crop-btn rounded-lg border border-slate-700 px-2 py-2 text-xs hover:border-violet-400">Free</button></div><button id="applyCrop" class="mt-2 hidden w-full rounded-lg bg-violet-500/20 py-2 text-xs font-bold text-violet-200 hover:bg-violet-500/30">Apply crop</button></div>
-        <div><h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">Text overlay</h3><input id="textInput" placeholder="Type something..." class="mb-2 w-full rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm outline-none focus:border-violet-400"><div class="flex gap-2"><input id="textSize" type="number" min="8" max="300" value="48" class="w-24 rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm outline-none"><input id="textColor" type="color" value="#ffffff" class="h-10 w-12 cursor-pointer rounded-lg border border-slate-700 bg-slate-900/70 p-1"><button id="addText" class="flex-1 rounded-lg bg-slate-800 px-3 text-sm font-bold hover:bg-slate-700">Add text</button></div></div>
-      </aside>
-    </div>
-    <p class="mt-5 text-center text-xs text-slate-500">Free online photo editor · No watermark · No uploads · Your images never leave your device</p>
-  </main>
-<script>
-const $ = s => document.querySelector(s), canvas = $('#canvas'), ctx = canvas.getContext('2d');
-const state = { img:null, filter:'original', brightness:100, contrast:100, saturation:100, blur:0, hue:0, rotation:0, flipH:false, flipV:false, crop:null, text:null };
-const demo = 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1400&q=85';
-const controls = [{key:'brightness', label:'Brightness', min:0,max:200,value:100,unit:'%'},{key:'contrast',label:'Contrast',min:0,max:200,value:100,unit:'%'},{key:'saturation',label:'Saturation',min:0,max:200,value:100,unit:'%'},{key:'blur',label:'Blur',min:0,max:10,value:0,unit:'px'},{key:'hue',label:'Hue rotate',min:0,max:360,value:0,unit:'°'}];
-$('#adjustments').innerHTML = controls.map(c => `<label class="block"><span class="mb-1 flex justify-between text-xs text-slate-300"><span>${c.label}</span><span id="${c.key}Val" class="text-slate-500">${c.value}${c.unit}</span></span><input id="${c.key}" type="range" min="${c.min}" max="${c.max}" value="${c.value}" class="h-1.5 w-full cursor-pointer"></label>`).join('');
-function loadImage(src) { const im = new Image(); im.crossOrigin='anonymous'; im.onload=()=>{state.img=im; state.crop=null; $('#emptyState').classList.add('hidden'); $('#stage').classList.remove('hidden'); $('#imageInfo').textContent=`${im.naturalWidth} × ${im.naturalHeight}px · edits stay in your browser`; render();}; im.onerror=()=>alert('This image could not be loaded. Please choose a local image.'); im.src=src; }
-function filterString(){ let f=''; if(state.filter==='grayscale')f+='grayscale(100%) '; if(state.filter==='sepia')f+='sepia(90%) '; if(state.filter==='vintage')f+='sepia(35%) contrast(110%) saturate(85%) '; if(state.filter==='bw')f+='grayscale(100%) contrast(145%) '; if(state.filter==='vibrant')f+='saturate(165%) contrast(108%) '; return `${f}brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) blur(${state.blur}px) hue-rotate(${state.hue}deg)`; }
-function baseCrop(){ const w=state.img.naturalWidth,h=state.img.naturalHeight; return state.crop || {x:0,y:0,w,h}; }
-function render(){ if(!state.img)return; const c=baseCrop(), quarter=state.rotation%180!==0, outW=quarter?c.h:c.w, outH=quarter?c.w:c.h; canvas.width=outW;canvas.height=outH;ctx.save();ctx.clearRect(0,0,outW,outH);ctx.filter=filterString();ctx.translate(outW/2,outH/2);ctx.rotate(state.rotation*Math.PI/180);ctx.scale(state.flipH?-1:1,state.flipV?-1:1);ctx.drawImage(state.img,c.x,c.y,c.w,c.h,-c.w/2,-c.h/2,c.w,c.h);ctx.restore();ctx.filter='none'; if(state.text){ctx.save();ctx.fillStyle=state.text.color;ctx.font=`700 ${state.text.size}px Inter, sans-serif`;ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=5;ctx.fillText(state.text.value,outW/2,outH/2);ctx.restore();} updateCropBox(); }
-function updateCropBox(){const b=baseCrop(); if(!state.crop){$('#cropBox').style.display='none';return;} const cw=canvas.clientWidth,ch=canvas.clientHeight, sx=cw/canvas.width,sy=ch/canvas.height; const box=$('#cropBox');box.style.display='block';box.style.left=(b.x*sx)+'px';box.style.top=(b.y*sy)+'px';box.style.width=(b.w*sx)+'px';box.style.height=(b.h*sy)+'px';}
-function setCrop(ratio){if(!state.img)return;const w=state.img.naturalWidth,h=state.img.naturalHeight;if(ratio==='free'){state.crop={x:w*.1,y:h*.1,w:w*.8,h:h*.8};}else{const [rw,rh]=ratio.split(':').map(Number);let cw=w,ch=cw*rh/rw;if(ch>h){ch=h;cw=ch*rw/rh;}state.crop={x:(w-cw)/2,y:(h-ch)/2,w:cw,h:ch};}$('#applyCrop').classList.remove('hidden');render();}
-function applyCrop(){if(state.crop){const c=state.crop;state.img=(()=>{const temp=document.createElement('canvas');temp.width=c.w;temp.height=c.h;temp.getContext('2d').drawImage(state.img,c.x,c.y,c.w,c.h,0,0,c.w,c.h);const im=new Image();im.src=temp.toDataURL();return im;})();state.img.onload=()=>{state.crop=null;$('#applyCrop').classList.add('hidden');render();};}}
-function handleFile(file){if(file&&file.type.startsWith('image/')){const reader=new FileReader();reader.onload=e=>loadImage(e.target.result);reader.readAsDataURL(file);}}
-$('#fileInput').onchange=e=>handleFile(e.target.files[0]);$('#fileInput2').onchange=e=>handleFile(e.target.files[0]);
-['dragenter','dragover'].forEach(ev=>$('#dropZone').addEventListener(ev,e=>{e.preventDefault();$('#dropZone').classList.add('border-violet-400');}));['dragleave','drop'].forEach(ev=>$('#dropZone').addEventListener(ev,e=>{e.preventDefault();$('#dropZone').classList.remove('border-violet-400');}));$('#dropZone').ondrop=e=>handleFile(e.dataTransfer.files[0]);
-$('#filters').onclick=e=>{const b=e.target.closest('[data-filter]');if(!b)return;state.filter=b.dataset.filter;document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x===b));render();};
-controls.forEach(c=>$('#'+c.key).oninput=e=>{state[c.key]=+e.target.value;$('#'+c.key+'Val').textContent=e.target.value+c.unit;render();});
-document.querySelectorAll('.action').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='rotateLeft')state.rotation=(state.rotation+270)%360;if(a==='rotateRight')state.rotation=(state.rotation+90)%360;if(a==='flipH')state.flipH=!state.flipH;if(a==='flipV')state.flipV=!state.flipV;render();});document.querySelectorAll('.crop-btn').forEach(b=>b.onclick=()=>setCrop(b.dataset.crop));$('#applyCrop').onclick=applyCrop;
-$('#addText').onclick=()=>{const v=$('#textInput').value.trim();if(v){state.text={value:v,size:Math.max(8,+$('#textSize').value||48),color:$('#textColor').value};render();}};
-$('#resetBtn').onclick=()=>{Object.assign(state,{filter:'original',brightness:100,contrast:100,saturation:100,blur:0,hue:0,rotation:0,flipH:false,flipV:false,crop:null,text:null});controls.forEach(c=>{$('#'+c.key).value=c.value;$('#'+c.key+'Val').textContent=c.value+c.unit;});document.querySelectorAll('.filter-btn').forEach(x=>x.classList.toggle('active',x.dataset.filter==='original'));$('#textInput').value='';$('#applyCrop').classList.add('hidden');render();};
-$('#downloadBtn').onclick=()=>{if(!state.img)return;const link=document.createElement('a');link.download='photo-editor-export.png';link.href=canvas.toDataURL('image/png');link.click();};
-let drag=null;$('#cropBox').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,c:{...state.crop}};e.currentTarget.setPointerCapture(e.pointerId);});$('#cropBox').addEventListener('pointermove',e=>{if(!drag)return;const r=canvas.getBoundingClientRect(),dx=(e.clientX-drag.x)*canvas.width/r.width,dy=(e.clientY-drag.y)*canvas.height/r.height;const c=state.crop;c.x=Math.max(0,Math.min(drag.c.x+dx,state.img.naturalWidth-c.w));c.y=Math.max(0,Math.min(drag.c.y+dy,state.img.naturalHeight-c.h));render();});$('#cropBox').addEventListener('pointerup',()=>drag=null);
-loadImage(demo);
-</script>
-</body>
+
+      <section id="features" class="relative mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        <div class="mb-12 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <p class="mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-violet-300">Features</p>
+            <h2 class="text-4xl font-bold tracking-tight text-white">All the tools you need, nothing bloated.</h2>
+          </div>
+          <p class="max-w-lg text-base text-slate-400">
+            EditKaro brings together powerful features in a beautifully simple workflow that feels instant.
+          </p>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <article class="glass rounded-2xl p-6 transition hover:-translate-y-1 hover:border-violet-400/20">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="8"/></svg>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-white">Filters</h3>
+            <p class="text-sm leading-6 text-slate-400">Apply polished visual looks with cinematic presets and custom tuning.</p>
+          </article>
+
+          <article class="glass rounded-2xl p-6 transition hover:-translate-y-1 hover:border-violet-400/20">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-pink-500/15 text-pink-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M3 7h18v10H3z"/><path d="M8 12h8"/><path d="M15 9l3 3-3 3"/></svg>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-white">Background Remover</h3>
+            <p class="text-sm leading-6 text-slate-400">Cut out subjects cleanly and make your visuals pop with crisp edges.</p>
+          </article>
+
+          <article class="glass rounded-2xl p-6 transition hover:-translate-y-1 hover:border-violet-400/20">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-white">Text Add</h3>
+            <p class="text-sm leading-6 text-slate-400">Add captions, brand names, and creative headlines with stylish typography.</p>
+          </article>
+
+          <article class="glass rounded-2xl p-6 transition hover:-translate-y-1 hover:border-violet-400/20">
+            <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path d="M5 7h14v10H5z"/><path d="M10 3h4v4h-4z"/></svg>
+            </div>
+            <h3 class="mb-2 text-xl font-semibold text-white">Crop</h3>
+            <p class="text-sm leading-6 text-slate-400">Resize and crop to the perfect ratio for social posts, banners, and stories.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="border-y border-white/10 bg-white/[0.02] py-20">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <div class="mb-12 text-center">
+            <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-pink-300">How it works</p>
+            <h2 class="text-4xl font-bold tracking-tight text-white">Create something beautiful in three steps.</h2>
+          </div>
+
+          <div class="grid gap-8 lg:grid-cols-3">
+            <div class="rounded-3xl border border-white/10 bg-slate-950/60 p-8">
+              <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/15 text-lg font-bold text-violet-300">1</div>
+              <h3 class="mb-3 text-2xl font-semibold text-white">Upload</h3>
+              <p class="text-slate-400">Drop in your image or choose a photo from your device in seconds.</p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-slate-950/60 p-8">
+              <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-pink-500/15 text-lg font-bold text-pink-300">2</div>
+              <h3 class="mb-3 text-2xl font-semibold text-white">Edit</h3>
+              <p class="text-slate-400">Apply filters, add text, remove backgrounds, crop, and enhance the look.</p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-slate-950/60 p-8">
+              <div class="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-cyan-500/15 text-lg font-bold text-cyan-300">3</div>
+              <h3 class="mb-3 text-2xl font-semibold text-white">Download</h3>
+              <p class="text-slate-400">Export your final image in crisp quality and share it anywhere.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="mx-auto max-w-5xl px-6 py-20 text-center lg:px-8">
+        <p class="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-violet-300">Why creators choose EditKaro</p>
+        <h2 class="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+          Professional editing, <span class="text-gradient">without the learning curve.</span>
+        </h2>
+        <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+          Whether you’re designing social posts, thumbnails, or personal snapshots, EditKaro makes it easy to create standout visuals in minutes.
+        </p>
+
+        <div class="mt-10">
+          <a
+            href="editor.html"
+            class="inline-flex items-center justify-center rounded-full bg-white px-7 py-4 text-base font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:bg-violet-100"
+          >
+            Start Editing
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-t border-white/10 py-8">
+      <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 px-6 text-sm text-slate-500 md:flex-row lg:px-8">
+        <div class="flex items-center gap-3 text-white">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-pink-500 text-xs font-bold">E</div>
+          <span class="text-lg font-semibold">EditKaro</span>
+        </div>
+        <p>© 2024 EditKaro. All rights reserved.</p>
+        <div class="flex items-center gap-5">
+          <a href="#features" class="transition hover:text-white">Features</a>
+          <a href="#how-it-works" class="transition hover:text-white">How it works</a>
+          <a href="editor.html" class="transition hover:text-white">Editor</a>
+        </div>
+      </div>
+    </footer>
+  </body>
 </html>
