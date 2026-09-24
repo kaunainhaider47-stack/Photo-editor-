@@ -1,38 +1,123 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>EditKaro Editor</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-*{scrollbar-width:thin;scrollbar-color:#4b5563 transparent}html,body{min-height:100%;background:#08090d}body{font-family:Inter,ui-sans-serif,system-ui,sans-serif}.glass{background:rgba(17,19,26,.88);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(18px)}.tool.active,.filter-card.active{background:rgba(139,92,246,.2);border-color:#a78bfa;color:#fff}.checker{background-color:#1a1d26;background-image:linear-gradient(45deg,#242936 25%,transparent 25%),linear-gradient(-45deg,#242936 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#242936 75%),linear-gradient(-45deg,transparent 75%,#242936 75%);background-size:28px 28px;background-position:0 0,0 14px,14px -14px,-14px 0}input[type=range]{accent-color:#a78bfa}.drop-active{border-color:#a78bfa!important;background:rgba(139,92,246,.12)}
-@media(max-width:767px){#controls{position:fixed;z-index:40;left:0;right:0;bottom:0;max-height:78vh;border-radius:24px 24px 0 0;transform:translateY(calc(100% - 64px));transition:transform .25s ease}#controls.open{transform:translateY(0)}}@media(min-width:768px){#controls .handle{display:none}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EditKaro — Pixel Filters</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+    body { min-height: 100vh; background: #08090d; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .glass { background: rgba(17, 19, 26, .92); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(16px); }
+    .filter-card { flex: 0 0 80px; width: 80px; }
+    #filterPanel { transition: transform .25s ease, opacity .25s ease; }
+    #filterPanel.closed { transform: translateX(110%); opacity: 0; pointer-events: none; }
+    @media (max-width: 767px) {
+      #filterPanel { position: fixed; z-index: 40; inset: auto 0 0; max-height: 72vh; border-radius: 24px 24px 0 0; }
+      #filterPanel.closed { transform: translateY(110%); }
+    }
+  </style>
 </head>
-<body class="min-h-screen overflow-x-hidden text-slate-100">
-<header class="glass sticky top-0 z-30 flex h-16 items-center justify-between px-4 shadow-2xl md:px-6"><a href="index.html" class="flex items-center gap-2.5 font-bold"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-pink-500">✦</span><span class="text-lg">EditKaro</span></a><div class="flex gap-2"><button id="undo" class="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/10 disabled:opacity-40">↶ <span class="hidden sm:inline">Undo</span></button><button id="download" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-violet-100">Download</button></div></header>
-<main class="mx-auto grid min-h-[calc(100vh-4rem)] max-w-[1600px] md:grid-cols-[80px_minmax(0,1fr)_330px]">
-<aside class="glass order-2 flex justify-around gap-1 p-2 md:order-1 md:flex-col md:justify-start md:gap-2 md:p-3">
-<button class="tool active flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="image">▣<span>Image</span></button><button class="tool flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="filters">◉<span>Filters</span></button><button class="tool flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="adjust">☷<span>Adjust</span></button><button class="tool flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="crop">⌗<span>Crop</span></button><button class="tool flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="text">T<span>Text</span></button><button class="tool flex flex-1 flex-col items-center gap-1 rounded-xl border border-transparent p-2 text-[10px] text-slate-400 hover:bg-white/10 md:flex-none" data-tool="bg">◌<span>BG Remover</span></button>
-</aside>
-<section class="order-1 flex min-h-[calc(100vh-8.5rem)] flex-col p-3 pb-5 sm:p-5 md:order-2 md:min-h-0 md:p-6"><div class="mb-3 flex items-center justify-between"><div><p class="text-sm font-semibold">Untitled design</p><p id="status" class="text-xs text-slate-500">Ready to create</p></div><button id="new" class="rounded-lg border border-white/10 px-3 py-2 text-xs hover:bg-white/10">New image</button></div><div id="drop" class="checker relative flex min-h-[55vh] flex-1 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/10 p-3 transition md:min-h-0"><div id="empty" class="z-10 max-w-sm text-center"><div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-violet-500/15 text-3xl text-violet-300">✦</div><h1 class="text-xl font-semibold">Drop an image to start</h1><p class="mt-2 text-sm text-slate-400">Everything stays in your browser.</p><label for="file" class="mt-5 inline-flex cursor-pointer rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900">Choose image</label><input id="file" type="file" accept="image/*" class="hidden"></div><canvas id="canvas" class="hidden max-h-[68vh] max-w-full rounded-lg shadow-2xl"></canvas></div><div class="mt-3 flex justify-between text-xs text-slate-500"><span id="info">No image loaded</span></div></section>
-<aside id="controls" class="glass order-3 overflow-y-auto p-5 shadow-2xl md:rounded-none md:border-y-0 md:border-r-0"><div class="handle mb-4 flex cursor-pointer flex-col items-center"><span class="mb-2 h-1 w-12 rounded-full bg-slate-600"></span><span class="text-xs text-slate-400">Tap to open tools</span></div><div class="mb-5"><h2 id="title" class="font-bold">Add an image</h2><p id="desc" class="mt-1 text-xs leading-5 text-slate-400">Upload an image or drag it onto the canvas.</p></div><div id="body"></div></aside></main>
-<template id="imageTpl"><label for="file2" class="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-violet-400/40 bg-violet-500/10 px-4 py-8 text-center text-sm text-violet-200">Choose a different image<input id="file2" type="file" accept="image/*" class="hidden"></label></template>
-<template id="filterTpl"><div class="mb-4 flex gap-3 overflow-x-auto pb-2" id="filterCards"></div><div class="rounded-xl border border-white/10 bg-white/[.03] p-4"><div class="mb-2 flex justify-between text-xs text-slate-400"><span>Intensity</span><output id="intensityValue">100%</output></div><input id="intensity" type="range" min="0" max="100" value="100" class="w-full"></div><p class="mt-3 text-xs text-slate-500">Previews use the same Canvas filter pipeline as the main image.</p></template>
-<template id="adjustTpl"><div id="adjustments" class="space-y-4"></div></template><template id="cropTpl"><div class="grid grid-cols-2 gap-2" id="crops"></div></template><template id="textTpl"><input id="text" class="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm" placeholder="Type text..."><button id="addText" class="mt-3 w-full rounded-xl bg-white py-2.5 text-sm font-semibold text-slate-900">Add text</button></template><template id="bgTpl"><p class="text-xs leading-5 text-slate-400">Remove near-uniform pixels matching the top-left background color.</p><button id="removeBg" class="mt-5 w-full rounded-xl bg-violet-500 py-2.5 text-sm font-semibold">Remove background</button></template>
+<body class="min-h-screen text-slate-100">
+  <header class="glass sticky top-0 z-30 flex h-16 items-center justify-between px-4 shadow-2xl md:px-6">
+    <a href="index.html" class="flex items-center gap-2.5 font-bold"><span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-pink-500">E</span><span>EditKaro</span></a>
+    <div class="flex items-center gap-2">
+      <label for="fileInput" class="cursor-pointer rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-violet-100">Upload image</label>
+      <input id="fileInput" type="file" accept="image/*" class="hidden" />
+      <button id="downloadBtn" class="rounded-xl border border-white/10 px-4 py-2 text-sm hover:bg-white/10">Download</button>
+    </div>
+  </header>
+
+  <main class="mx-auto grid min-h-[calc(100vh-4rem)] max-w-[1600px] md:grid-cols-[80px_minmax(0,1fr)_340px]">
+    <aside class="glass order-2 flex justify-around gap-2 p-2 md:order-1 md:flex-col md:justify-start md:p-3">
+      <button class="tool rounded-xl border border-transparent p-3 text-center text-xs text-slate-300 hover:bg-white/10" data-tool="image">▣<span class="mt-1 block">Image</span></button>
+      <button id="filtersButton" class="tool active rounded-xl border border-violet-400/30 bg-violet-500/15 p-3 text-center text-xs text-violet-200 hover:bg-violet-500/25" data-tool="filters">✦<span class="mt-1 block">Filters</span></button>
+    </aside>
+
+    <section class="order-1 flex min-h-[calc(100vh-8.5rem)] flex-col p-4 md:order-2 md:p-8">
+      <div class="mb-4 flex items-center justify-between"><div><p class="text-sm font-semibold text-violet-300">Canvas editor</p><h1 class="text-2xl font-bold">Make your image pop</h1></div><span id="status" class="text-xs text-slate-500">Upload an image to begin</span></div>
+      <div id="dropZone" class="relative flex min-h-[55vh] flex-1 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-[#11131a] p-4 shadow-2xl">
+        <div id="emptyState" class="text-center text-slate-400"><div class="mx-auto mb-4 text-5xl">▧</div><p class="mb-4">Drop an image here or upload one above.</p><label for="fileInput" class="cursor-pointer rounded-xl bg-violet-500 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-400">Choose image</label></div>
+        <canvas id="canvas" class="hidden max-h-[70vh] max-w-full rounded-xl object-contain shadow-2xl"></canvas>
+      </div>
+    </section>
+
+    <aside id="filterPanel" class="glass order-3 overflow-y-auto border-t-0 p-5 shadow-2xl md:rounded-none md:border-y-0 md:border-r-0">
+      <div class="mb-5 flex items-center justify-between"><div><p class="text-xs font-semibold uppercase tracking-[.2em] text-violet-300">Adjust</p><h2 class="text-xl font-bold">Filters</h2></div><button id="closeFilters" class="rounded-lg px-2 py-1 text-xl text-slate-400 hover:bg-white/10" aria-label="Close filters">×</button></div>
+      <p class="mb-3 text-xs text-slate-400">Select a live pixel preview</p>
+      <div id="filterCards" class="mb-6 flex gap-3 overflow-x-auto pb-3" aria-label="Available filters"></div>
+      <div class="rounded-2xl border border-white/10 bg-white/[.03] p-4"><div class="mb-2 flex items-center justify-between"><label for="intensity" class="font-semibold">Intensity</label><output id="intensityValue" class="text-sm text-violet-300">100%</output></div><input id="intensity" type="range" min="0" max="100" value="100" class="w-full accent-violet-500" /><p class="mt-2 text-xs leading-5 text-slate-500">Blends original and filtered pixels in real time.</p></div>
+      <div class="mt-5 rounded-2xl border border-white/10 p-4 text-xs leading-5 text-slate-400"><span class="font-semibold text-slate-200">Pixel processing</span><br />Previews and the main image use Canvas <code class="text-violet-300">getImageData()</code>; no CSS filters are used.</div>
+    </aside>
+  </main>
+
 <script>
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],canvas=$('#canvas'),ctx=canvas.getContext('2d',{willReadFrequently:true});
-const state={image:null,source:'',filter:'original',intensity:100,brightness:100,contrast:100,saturation:100,blur:0,history:[]};
-const filterDefs={original:{name:'Original',css:''},grayscale:{name:'Grayscale',css:'grayscale(1)'},sepia:{name:'Sepia',css:'sepia(1)'},vintage:{name:'Vintage',css:'sepia(.38) contrast(1.12) saturate(.82)'},bw:{name:'B&W',css:'grayscale(1) contrast(1.55)'},vibrant:{name:'Vibrant',css:'saturate(1.7) contrast(1.12)'},cool:{name:'Cool',css:'saturate(1.12) hue-rotate(18deg)'},warm:{name:'Warm',css:'sepia(.2) saturate(1.35) hue-rotate(-10deg)'},dramatic:{name:'Dramatic',css:'contrast(1.45) saturate(1.15)'} };
-function snapshot(){return{source:state.source,filter:state.filter,intensity:state.intensity,brightness:state.brightness,contrast:state.contrast,saturation:state.saturation,blur:state.blur}}function save(){if(state.image)state.history.push(snapshot());$('#undo').disabled=!state.history.length}function load(src,record=true){let im=new Image();im.onload=()=>{if(record)save();state.image=im;state.source=src;$('#empty').classList.add('hidden');canvas.classList.remove('hidden');$('#info').textContent=`${im.naturalWidth} × ${im.naturalHeight}px · stored as base64`;$('#status').textContent='Image loaded · edits are local';render()};im.src=src}
-function openFile(f){if(!f||!f.type.startsWith('image/'))return;let r=new FileReader();r.onload=e=>load(e.target.result);r.readAsDataURL(f)}
-function cssFor(id,intensity){let d=filterDefs[id].css;if(!d||intensity>=100)return d;return d.replace(/([\d.]+)(?=\))/g,m=>(+m*(intensity/100)).toFixed(3))}function render(){if(!state.image)return;canvas.width=state.image.naturalWidth;canvas.height=state.image.naturalHeight;ctx.save();ctx.filter=`${cssFor(state.filter,state.intensity)} brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%) blur(${state.blur}px)`;ctx.drawImage(state.image,0,0);ctx.restore()}
-function previewData(css){if(!state.image)return'';let c=document.createElement('canvas'),w=120,h=Math.round(120*state.image.naturalHeight/state.image.naturalWidth);c.width=w;c.height=h;let x=c.getContext('2d');x.filter=css;x.drawImage(state.image,0,0,w,h);return c.toDataURL('image/jpeg',.82)}
-function setTool(tool){$$('.tool').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));let meta={image:['Add an image','Upload an image or drag it onto the canvas.'],filters:['Filters','Choose a look and control its intensity.'],adjust:['Adjust','Tune the image with canvas operations.'],crop:['Crop','Choose a canvas crop ratio.'],text:['Text','Draw text directly onto the canvas.'],bg:['Background remover','Remove simple backgrounds locally.']}[tool];$('#title').textContent=meta[0];$('#desc').textContent=meta[1];let id=tool==='filters'?'filter':tool;$('#body').innerHTML=$(`#${id}Tpl`).innerHTML;bind(tool);if(innerWidth<768)$('#controls').classList.add('open')}
-function bind(tool){if(tool==='image')$('#file2').onchange=e=>openFile(e.target.files[0]);if(tool==='filters'){let wrap=$('#filterCards');wrap.innerHTML=Object.entries(filterDefs).map(([id,f])=>`<button class="filter-card active:${state.filter===id?'active':''} min-w-[92px] rounded-xl border border-white/10 p-1.5 text-left transition hover:bg-white/10" data-filter="${id}"><img class="filter-thumb h-20 w-full rounded-lg object-cover bg-slate-800" alt="${f.name} preview"><span class="mt-1 block truncate px-1 text-[11px] text-slate-300">${f.name}</span></button>`).join('');$$('.filter-card').forEach(b=>{let d=filterDefs[b.dataset.filter];b.querySelector('img').src=previewData(cssFor(b.dataset.filter,100))||'';b.onclick=()=>{save();state.filter=b.dataset.filter;render();$$('.filter-card').forEach(x=>x.classList.toggle('active',x===b))}});$('#intensity').value=state.intensity;$('#intensityValue').textContent=state.intensity+'%';$('#intensity').oninput=e=>{state.intensity=+e.target.value;$('#intensityValue').textContent=state.intensity+'%';render()}}
-if(tool==='adjust'){let a=[['brightness','Brightness',0,200],['contrast','Contrast',0,200],['saturation','Saturation',0,200],['blur','Blur',0,12]];$('#adjustments').innerHTML=a.map(x=>`<label class="block text-xs text-slate-400"><span class="mb-2 flex justify-between">${x[1]}<output>${state[x[0]]}${x[0]==='blur'?'px':'%'}</output></span><input data-a="${x[0]}" type="range" min="${x[2]}" max="${x[3]}" value="${state[x[0]]}" class="w-full"></label>`).join('');$$('[data-a]').forEach(i=>i.oninput=()=>{state[i.dataset.a]=+i.value;i.previousElementSibling.querySelector('output').textContent=i.value+(i.dataset.a==='blur'?'px':'%');render()})}
-if(tool==='crop'){$('#crops').innerHTML=['1:1','4:3','16:9','Original'].map(r=>`<button class="rounded-xl border border-white/10 py-3 text-sm hover:bg-white/10" data-r="${r}">${r}</button>`).join('');$$('[data-r]').forEach(b=>b.onclick=()=>{if(!state.image)return;save();let w=state.image.naturalWidth,h=state.image.naturalHeight;if(b.dataset.r!=='Original'){let[q,p]=b.dataset.r.split(':').map(Number),ratio=q/p;let nw=w,nh=w/ratio;if(nh>h){nh=h;nw=h*ratio}let c=document.createElement('canvas');c.width=nw;c.height=nh;c.getContext('2d').drawImage(state.image,(w-nw)/2,(h-nh)/2,nw,nh,0,0,nw,nh);load(c.toDataURL(),false)}})}
-if(tool==='text')$('#addText').onclick=()=>{if(!state.image||!$('#text').value.trim())return;save();render();ctx.font='700 64px sans-serif';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=8;ctx.fillText($('#text').value.trim(),canvas.width/2,canvas.height/2);state.source=canvas.toDataURL('image/png');load(state.source,false)};
-if(tool==='bg')$('#removeBg').onclick=()=>{if(!state.image)return;save();render();let p=ctx.getImageData(0,0,canvas.width,canvas.height),d=p.data,b=[d[0],d[1],d[2]];for(let i=0;i<d.length;i+=4)if(Math.hypot(d[i]-b[0],d[i+1]-b[1],d[i+2]-b[2])<90)d[i+3]=0;ctx.putImageData(p,0,0);state.source=canvas.toDataURL();load(state.source,false)}}
-$('#file').onchange=e=>openFile(e.target.files[0]);$('#drop').ondragover=e=>{e.preventDefault();$('#drop').classList.add('drop-active')};$('#drop').ondragleave=()=>$('#drop').classList.remove('drop-active');$('#drop').ondrop=e=>{e.preventDefault();$('#drop').classList.remove('drop-active');openFile(e.dataTransfer.files[0])};$$('.tool').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$('.handle').onclick=()=>$('#controls').classList.toggle('open');$('#download').onclick=()=>{if(!state.image)return;let a=document.createElement('a');a.download='editkaro-image.png';a.href=canvas.toDataURL('image/png');a.click()};$('#new').onclick=()=>{state.image=null;state.source='';canvas.classList.add('hidden');$('#empty').classList.remove('hidden');$('#info').textContent='No image loaded'};$('#undo').onclick=()=>{let s=state.history.pop();if(s)load(s.source,false)};setTool('image');
+const $ = (selector) => document.querySelector(selector);
+const canvas = $('#canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const previewSize = 80;
+const state = { image: null, original: null, filter: 'original', intensity: 100 };
+
+const filterDefs = {
+  original: { name: 'Original', apply: (r,g,b) => [r,g,b] },
+  grayscale: { name: 'Grayscale', apply: (r,g,b) => { const y = .299*r + .587*g + .114*b; return [y,y,y]; } },
+  sepia: { name: 'Sepia', apply: (r,g,b) => [r*.393+g*.769+b*.189, r*.349+g*.686+b*.168, r*.272+g*.534+b*.131] },
+  vintage: { name: 'Vintage', apply: (r,g,b) => { const y=.299*r+.587*g+.114*b; return [y*1.12+18, y*0.92+8, y*0.72]; } },
+  bw: { name: 'B&W', apply: (r,g,b) => { const y=.299*r+.587*g+.114*b; const v=y>145?255:0; return [v,v,v]; } },
+  vibrant: { name: 'Vibrant', apply: (r,g,b) => { const y=.299*r+.587*g+.114*b; return [y+(r-y)*1.55, y+(g-y)*1.55, y+(b-y)*1.55]; } },
+  cool: { name: 'Cool', apply: (r,g,b) => [r*.88, g*1.02+4, b*1.18+12] },
+  warm: { name: 'Warm', apply: (r,g,b) => [r*1.14+8, g*1.03+2, b*.84] },
+  dramatic: { name: 'Dramatic', apply: (r,g,b) => { const contrast=1.45, f=(v)=>((v/255-.5)*contrast+.5)*255; return [f(r*.96),f(g*.96),f(b*.96)]; } }
+};
+
+function clamp(value) { return Math.max(0, Math.min(255, value)); }
+function filteredPixels(source, filterId, intensity) {
+  const output = new ImageData(new Uint8ClampedArray(source.data), source.width, source.height);
+  const apply = filterDefs[filterId].apply;
+  const amount = intensity / 100;
+  for (let i=0; i<source.data.length; i+=4) {
+    const [fr,fg,fb] = apply(source.data[i], source.data[i+1], source.data[i+2]);
+    output.data[i] = clamp(source.data[i] * (1-amount) + fr * amount);
+    output.data[i+1] = clamp(source.data[i+1] * (1-amount) + fg * amount);
+    output.data[i+2] = clamp(source.data[i+2] * (1-amount) + fb * amount);
+    output.data[i+3] = source.data[i+3];
+  }
+  return output;
+}
+function drawCurrent() { if (state.original) ctx.putImageData(filteredPixels(state.original, state.filter, state.intensity), 0, 0); }
+function makePreview(source, filterId) {
+  const scale = Math.min(previewSize/source.width, previewSize/source.height);
+  const w = Math.max(1, Math.round(source.width*scale)), h = Math.max(1, Math.round(source.height*scale));
+  const small = document.createElement('canvas'); small.width=w; small.height=h;
+  const smallCtx=small.getContext('2d', {willReadFrequently:true});
+  const sourceCanvas=document.createElement('canvas'); sourceCanvas.width=source.width; sourceCanvas.height=source.height;
+  sourceCanvas.getContext('2d').putImageData(source,0,0);
+  smallCtx.drawImage(sourceCanvas,0,0,w,h);
+  smallCtx.putImageData(filteredPixels(smallCtx.getImageData(0,0,w,h), filterId, state.intensity),0,0);
+  return small.toDataURL('image/jpeg', .86);
+}
+function renderCards() {
+  const wrap=$('#filterCards'); wrap.innerHTML='';
+  Object.entries(filterDefs).forEach(([id, def]) => {
+    const button=document.createElement('button'); button.type='button'; button.className=`filter-card group rounded-xl border p-1 text-left transition ${state.filter===id?'border-violet-400 bg-violet-500/15':'border-white/10 bg-white/[.03] hover:border-white/30'}`;
+    button.dataset.filter=id; button.innerHTML=`<img class="h-[58px] w-full rounded-lg bg-black object-cover" alt="${def.name} preview"><span class="mt-1 block truncate text-[10px] text-slate-300">${def.name}</span>`;
+    if(state.original) button.querySelector('img').src=makePreview(state.original,id); button.onclick=()=>{state.filter=id; drawCurrent(); renderCards();}; wrap.appendChild(button);
+  });
+}
+function loadImage(file) {
+  if(!file || !file.type.startsWith('image/')) return;
+  const image=new Image(); image.onload=()=>{const scale=Math.min(1, 1800/Math.max(image.naturalWidth,image.naturalHeight)); canvas.width=Math.max(1,Math.round(image.naturalWidth*scale)); canvas.height=Math.max(1,Math.round(image.naturalHeight*scale)); ctx.drawImage(image,0,0,canvas.width,canvas.height); state.original=ctx.getImageData(0,0,canvas.width,canvas.height); state.image=image; canvas.classList.remove('hidden'); $('#emptyState').classList.add('hidden'); $('#status').textContent=`${canvas.width} × ${canvas.height}`; state.filter='original'; state.intensity=100; $('#intensity').value=100; $('#intensityValue').textContent='100%'; renderCards();}; image.src=URL.createObjectURL(file);
+}
+$('#fileInput').onchange=e=>loadImage(e.target.files[0]);
+$('#intensity').oninput=e=>{state.intensity=Number(e.target.value); $('#intensityValue').textContent=`${state.intensity}%`; drawCurrent(); renderCards();};
+$('#filtersButton').onclick=()=>$('#filterPanel').classList.remove('closed');
+$('#closeFilters').onclick=()=>$('#filterPanel').classList.add('closed');
+$('#dropZone').ondragover=e=>{e.preventDefault(); $('#dropZone').classList.add('border-violet-400');};
+$('#dropZone').ondragleave=()=>$('#dropZone').classList.remove('border-violet-400');
+$('#dropZone').ondrop=e=>{e.preventDefault(); $('#dropZone').classList.remove('border-violet-400'); loadImage(e.dataTransfer.files[0]);};
+$('#downloadBtn').onclick=()=>{if(!state.original)return; drawCurrent(); const a=document.createElement('a'); a.download='editkaro-filtered.png'; a.href=canvas.toDataURL('image/png'); a.click();};
+renderCards();
 </script>
-</body></html>
+</body>
+</html>
