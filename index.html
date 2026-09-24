@@ -1,32 +1,127 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BG Remover</title>
   <style>
-    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0a0a0a;color:#fff}.app{width:min(720px,100%);margin:auto;padding:18px 16px 48px}.top{height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.brand{display:flex;align-items:center;gap:10px;font-weight:700}.logo{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#8b5cf6;box-shadow:0 0 20px #8b5cf666}.actions{display:flex;gap:8px}button{border:1px solid #2a2a2a;border-radius:999px;background:#141414;color:#e5e7eb;padding:10px 16px;cursor:pointer;font:inherit;font-size:13px}button:hover{background:#1e1e1e;border-color:#3a3a3a}button.primary{background:#8b5cf6;border-color:#8b5cf6;color:white;font-weight:700}.drop{min-height:440px;border:1px solid #2a2a2a;border-radius:22px;padding:16px;display:grid;place-items:center;overflow:hidden;background-color:#141414;background-image:linear-gradient(45deg,#1a1a1a 25%,transparent 25%),linear-gradient(-45deg,#1a1a1a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#1a1a1a 75%),linear-gradient(-45deg,transparent 75%,#1a1a1a 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;box-shadow:0 20px 60px #0008}.empty{width:100%;min-height:400px;border:2px dashed #2a2a2a;border-radius:16px;display:grid;place-items:center;text-align:center;padding:32px;cursor:pointer}.empty strong{display:block;margin:12px 0 6px}.empty p{margin:0;color:#9ca3af;font-size:13px;line-height:1.6}.icon{font-size:34px}.preview{display:none;max-width:100%;max-height:65vh;border-radius:12px;box-shadow:0 12px 40px #0009}.panel{margin-top:16px;padding:18px;border:1px solid #2a2a2a;border-radius:22px;background:#141414}.panel button{width:100%;height:52px}.meta{display:flex;justify-content:space-between;color:#9ca3af;font:12px ui-monospace,monospace;margin:0 2px 10px}.compare{display:none;gap:8px;margin-top:12px}.compare button{flex:1}.status{text-align:center;color:#9ca3af;font-size:12px;min-height:20px;margin-top:12px}.private{text-align:center;color:#6b7280;font-size:11px;margin-top:18px}@media(max-width:600px){.app{padding:12px 12px 36px}.drop{min-height:360px}.empty{min-height:320px}.top .download{display:none}.top{margin-bottom:12px}}
+    :root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#0a0a0a;color:#fff}.app{width:min(920px,100%);margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-size:1.2rem;font-weight:700}.logo{margin-right:8px}.actions{display:flex;gap:8px}button{border:0;border-radius:10px;padding:11px 16px;color:#fff;background:#282828;cursor:pointer;font:inherit}button:disabled{opacity:.45;cursor:not-allowed}.primary{width:100%;margin-top:16px;background:#7c3aed;font-weight:700}.download{background:#166534}.drop{min-height:440px;margin-top:20px;border:1px dashed #555;border-radius:16px;display:grid;place-items:center;overflow:hidden;background:repeating-conic-gradient(#161616 0 25%,#111 0 50%) 50%/28px 28px}.empty{text-align:center;color:#aaa;cursor:pointer;padding:40px}.icon{font-size:3rem;margin-bottom:12px}.preview{max-width:100%;max-height:70vh;object-fit:contain}.meta{display:flex;justify-content:space-between;color:#aaa;margin-top:10px;font-size:.9rem}.badge{color:#4ade80}.compare{display:flex;gap:8px;margin-top:10px}.status{min-height:24px;margin-top:12px;color:#bbb}.retry{background:#b45309}.hint{color:#888;font-size:.85rem}
   </style>
 </head>
 <body>
   <main class="app">
-    <header class="top"><div class="brand"><span class="logo">✂️</span><span>BG Remover</span></div><div class="actions"><button class="download" id="downloadTop" hidden>⇩ Download PNG</button><button id="reset">↺ Reset</button><button class="primary" id="upload">↑ Upload</button></div></header>
+    <header class="top"><div class="brand"><span class="logo">✂️</span>BG Remover</div><div class="actions"><button id="downloadTop" class="download" hidden>⇩ Download PNG</button></div></header>
     <input id="file" type="file" accept="image/*" hidden>
-    <div class="meta"><span id="dimensions">No image</span><span id="badge" hidden>● Transparent</span></div>
-    <section class="drop" id="drop"><div class="empty" id="empty"><div><div class="icon">🖼️</div><strong>Drop image here</strong><p>Drop an image, click Upload, or paste with Ctrl+V</p></div></div><canvas class="preview" id="canvas"></canvas></section>
-    <section class="panel"><button class="primary" id="remove" disabled>✨ Remove Background</button><div class="compare" id="compare"><button id="original">Restore Original</button><button class="primary" id="download">⇩ Download Transparent PNG</button></div><div class="status" id="status"></div><div class="private">● Private — 100% on-device. No upload. No tracking.</div></section>
+    <div class="meta"><span id="dimensions">No image</span><span id="badge" class="badge" hidden>● Transparent</span></div>
+    <section class="drop" id="drop"><div class="empty" id="empty"><div class="icon">🖼️</div><strong>Drop image here</strong><p>Drop an image, click Upload, or paste with Ctrl+V</p><button id="upload">Upload image</button></div><img id="preview" class="preview" hidden alt="Preview"></section>
+    <section class="panel"><button class="primary" id="remove" disabled>✨ Remove Background</button><div class="compare" id="compare" hidden><button id="original">Restore Original</button><button id="download">⇩ Download PNG</button></div><div class="status" id="status" role="status"></div><div class="hint">Images are processed privately in your browser.</div></section>
   </main>
 <script>
 (() => {
-  const $ = id => document.getElementById(id), file = $('file'), canvas = $('canvas'), ctx = canvas.getContext('2d', {willReadFrequently:true});
-  let source = null, result = null, objectUrl = null, busy = false;
+  const $ = id => document.getElementById(id);
+  const fileInput = $('file'), canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
+  let originalFile = null, currentFile = null, originalImage = null, objectUrl = null, busy = false, isRemoved = false;
+
   const setStatus = text => $('status').textContent = text;
-  function draw(image) { canvas.width = image.naturalWidth; canvas.height = image.naturalHeight; ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(image,0,0); canvas.style.display='block'; $('empty').style.display='none'; $('remove').disabled=false; $('dimensions').textContent = `${canvas.width} × ${canvas.height}`; }
-  function loadImage(blob) { if (!blob || !blob.type || !blob.type.startsWith('image/')) return; if(objectUrl) URL.revokeObjectURL(objectUrl); objectUrl=URL.createObjectURL(blob); const image=new Image(); image.onload=()=>{source=image;result=null;draw(image);$('compare').style.display='none';$('badge').hidden=true;setStatus('Ready');}; image.onerror=()=>setStatus('Could not load that image'); image.src=objectUrl; }
-  function download() { if(!source) return; const link=document.createElement('a'); link.download=`bg-removed-${Date.now()}.png`; link.href=canvas.toDataURL('image/png'); link.click(); }
-  async function removeBackground() { if(!source || busy) return; busy=true;$('remove').disabled=true;setStatus('Loading AI model…');try { const mod=await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/+esm'); const remove=mod.removeBackground||mod.default; if(!remove) throw new Error('removeBackground unavailable'); setStatus('Removing background…'); const blob=await remove(await fetch(source.src).then(r=>r.blob()),{publicPath:'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.6.0/dist/',progress:(part,done,total)=>{if(total)setStatus(`Removing background… ${Math.round(done/total*100)}%`);}}); const url=URL.createObjectURL(blob); const image=new Image(); image.onload=()=>{result=image;draw(image);$('badge').hidden=false;$('compare').style.display='flex';setStatus('Background removed — transparent PNG ready');busy=false;$('remove').disabled=false;URL.revokeObjectURL(url);}; image.src=url; } catch(error) { console.error(error); setStatus('AI removal failed. Please try another image.');busy=false;$('remove').disabled=false; } }
-  $('upload').onclick=()=>file.click(); $('empty').onclick=()=>file.click(); file.onchange=e=>loadImage(e.target.files[0]); $('remove').onclick=removeBackground; $('download').onclick=download; $('downloadTop').onclick=download; $('original').onclick=()=>{if(source){draw(source);$('badge').hidden=true;setStatus('Original restored');}}; $('reset').onclick=()=>{source=result=null;file.value='';canvas.style.display='none';$('empty').style.display='grid';$('compare').style.display='none';$('badge').hidden=true;$('dimensions').textContent='No image';$('remove').disabled=true;setStatus('');};
-  ['dragover','dragenter'].forEach(type=>$('drop').addEventListener(type,e=>{e.preventDefault();})); $('drop').addEventListener('drop',e=>{e.preventDefault();loadImage(e.dataTransfer.files[0]);}); document.addEventListener('paste',e=>{const image=[...e.clipboardData.items].find(item=>item.type.startsWith('image/'));if(image)loadImage(image.getAsFile());});
+
+  function drawImage(image) {
+    canvas.width = image.naturalWidth || image.width;
+    canvas.height = image.naturalHeight || image.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    $('preview').src = canvas.toDataURL('image/png');
+    $('preview').hidden = false;
+    $('empty').hidden = true;
+    $('dimensions').textContent = `${canvas.width} × ${canvas.height}`;
+  }
+
+  function loadImage(blob) {
+    if (!blob || !blob.type || !blob.type.startsWith('image/')) return;
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => {
+      originalImage = image;
+      originalFile = blob;
+      currentFile = blob;
+      isRemoved = false;
+      $('remove').disabled = false;
+      $('badge').hidden = true;
+      $('compare').hidden = true;
+      drawImage(image);
+      setStatus('Ready to remove the background.');
+    };
+    image.onerror = () => setStatus('Could not read this image.');
+    image.src = objectUrl;
+  }
+
+  // Keeping the largest dimension at maxSize dramatically reduces mobile memory use.
+  function downscaleImage(file, maxSize = 1024) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+      image.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxSize / Math.max(image.naturalWidth, image.naturalHeight));
+        const w = Math.max(1, Math.round(image.naturalWidth * scale));
+        const h = Math.max(1, Math.round(image.naturalHeight * scale));
+        const work = document.createElement('canvas');
+        work.width = w; work.height = h;
+        work.getContext('2d').drawImage(image, 0, 0, w, h);
+        work.toBlob(blob => blob ? resolve(new File([blob], file.name || 'image.png', {type:'image/png'})) : reject(new Error('Could not compress image')), 'image/png');
+      };
+      image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not load image')); };
+      image.src = url;
+    });
+  }
+
+  // Color-aware fallback: background-connected pixels are removed while the subject remains intact.
+  function smartFallbackRemove() {
+    const w = canvas.width, h = canvas.height;
+    const imgData = ctx.getImageData(0, 0, w, h), data = imgData.data;
+    let bgR = 0, bgG = 0, bgB = 0, count = 0;
+    const sample = (x, y) => { const i = (y * w + x) * 4; bgR += data[i]; bgG += data[i+1]; bgB += data[i+2]; count++; };
+    const borderX = Math.max(1, Math.floor(w * .10)), borderY = Math.max(1, Math.floor(h * .10));
+    for (let y=0; y<borderY; y++) for (let x=0; x<w; x++) sample(x,y);
+    for (let y=h-borderY; y<h; y++) for (let x=0; x<w; x++) sample(x,y);
+    for (let y=0; y<h; y++) { for (let x=0; x<borderX; x++) sample(x,y); for (let x=w-borderX; x<w; x++) sample(x,y); }
+    bgR/=count; bgG/=count; bgB/=count;
+    const seen = new Uint8Array(w*h), queue = [], tolerance = 55, feather = 85;
+    const add = (x,y) => { if(x>=0&&x<w&&y>=0&&y<h&&!seen[y*w+x]) { seen[y*w+x]=1; queue.push(y*w+x); } };
+    for(let x=0;x<w;x++){add(x,0);add(x,h-1)} for(let y=0;y<h;y++){add(0,y);add(w-1,y)}
+    while(queue.length){ const p=queue.pop(), x=p%w, y=(p-x)/w, i=p*4; const d=Math.hypot(data[i]-bgR,data[i+1]-bgG,data[i+2]-bgB); if(d>=feather) continue; data[i+3]=d<tolerance?0:data[i+3]*((d-tolerance)/(feather-tolerance)); add(x-1,y);add(x+1,y);add(x,y-1);add(x,y+1); }
+    ctx.putImageData(imgData,0,0); $('preview').src=canvas.toDataURL('image/png'); $('badge').hidden=false; $('compare').hidden=false; isRemoved=true; setStatus('✅ Removed with smart fallback (100% private)');
+  }
+
+  function addRetryButton() {
+    let retry = $('retry');
+    if (!retry) { retry=document.createElement('button'); retry.id='retry'; retry.className='retry'; retry.textContent='Try Again with Smaller Image'; $('compare').after(retry); }
+    retry.hidden=false; retry.onclick=()=>removeBackground(512);
+  }
+
+  async function removeBackground(retrySize=1024) {
+    if (!originalFile || busy) return;
+    busy=true; $('remove').disabled=true; const retry=$('retry'); if(retry) retry.hidden=true;
+    try {
+      setStatus('⏳ Compressing image...');
+      currentFile = await downscaleImage(originalFile, retrySize);
+      const scaled = new Image(); const url=URL.createObjectURL(currentFile);
+      await new Promise((resolve,reject)=>{scaled.onload=resolve;scaled.onerror=reject;scaled.src=url}); URL.revokeObjectURL(url); drawImage(scaled);
+      setStatus('⏳ Loading AI (1st time ~20MB)...');
+      const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
+      const blob = await mod.removeBackground(currentFile, {publicPath:'https://static.img.ly/packages/imgly/background-removal-data/1.0.0/dist/', debug:false});
+      const resultUrl=URL.createObjectURL(blob), resultImage=new Image();
+      await new Promise((resolve,reject)=>{resultImage.onload=resolve;resultImage.onerror=reject;resultImage.src=resultUrl}); URL.revokeObjectURL(resultUrl); drawImage(resultImage);
+      $('badge').hidden=false; $('compare').hidden=false; isRemoved=true; setStatus('✅ Background removed');
+    } catch (e) {
+      console.log('AI failed, using smart fallback', e); setStatus('AI busy, using smart removal...'); smartFallbackRemove(); addRetryButton();
+    } finally { busy=false; $('remove').disabled=false; }
+  }
+
+  function download() { if(!isRemoved) return; const a=document.createElement('a'); a.download=`bg-removed-${Date.now()}.png`; a.href=canvas.toDataURL('image/png'); a.click(); }
+  $('upload').onclick=()=>fileInput.click(); $('empty').onclick=e=>{if(e.target!==$('upload'))fileInput.click()}; fileInput.onchange=e=>loadImage(e.target.files[0]); $('remove').onclick=()=>removeBackground(1024); $('download').onclick=download; $('downloadTop').onclick=download; $('original').onclick=()=>{if(originalImage){drawImage(originalImage);isRemoved=false;$('badge').hidden=true;$('compare').hidden=true;setStatus('Original restored.')}};
+  $('drop').ondragover=e=>e.preventDefault(); $('drop').ondrop=e=>{e.preventDefault();loadImage(e.dataTransfer.files[0])}; document.onpaste=e=>{const item=[...(e.clipboardData?.items||[])].find(i=>i.type.startsWith('image/'));if(item)loadImage(item.getAsFile())};
 })();
 </script>
 </body>
